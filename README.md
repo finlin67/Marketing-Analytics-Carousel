@@ -1,5 +1,7 @@
 # Marketing Analytics Carousel
 
+![Dashboard Preview](example.png)
+
 A premium, high-fidelity marketing analytics dashboard prototype. This project demonstrates a "living" UI with a rotating 3D KPI carousel, real-time simulated data streams, and organic sparkline visualizations.
 
 ## Features
@@ -18,7 +20,7 @@ A premium, high-fidelity marketing analytics dashboard prototype. This project d
 
 ## structure
 
-- **`App.tsx`**: Contains the core application logic, including the data simulation loop (`useEffect`), the math for the organic sparkline generation, and the main UI render tree.
+- **`Marketing-Analytics-Carousel.tsx`**: Contains the core application logic, including the data simulation loop (`useEffect`), the math for the organic sparkline generation, and the main UI render tree.
 - **`index.tsx`**: The entry point that mounts the React application to the DOM.
 - **`index.html`**: The document shell, handling external dependencies (via `esm.sh` import maps) and Tailwind CSS (via CDN).
 
@@ -27,6 +29,6 @@ A premium, high-fidelity marketing analytics dashboard prototype. This project d
 This project uses an ES Module (ESM) architecture via `importmap` in `index.html`. It is designed to run instantly in modern browser environments or lightweight development servers without a complex build step.
 
 To extend the project:
-1. Modify `KPI_DEFS` in `App.tsx` to change the cards in the carousel.
-2. Adjust the `loop` interval in `App.tsx` to change the speed of data updates.
+1. Modify `KPI_DEFS` in `Marketing-Analytics-Carousel.tsx` to change the cards in the carousel.
+2. Adjust the `loop` interval in `Marketing-Analytics-Carousel.tsx` to change the speed of data updates.
 3. Tweak the sine wave parameters in the sparkline `useEffect` to alter the graph's volatility.

@@ -77,36 +77,36 @@ export default function MarketingAnalytics() {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const loop = () => {
-      // 1. Update KPI Values (Drift)
-      setPrevKpiValues(prev => ({ ...kpiValues })); // Snapshot current as previous
+      // 1. Update KPI Values (Drift) - reduced variance for stability
+      setPrevKpiValues(prev => ({ ...kpiValues })); 
       
       setKpiValues(current => ({
-        conv: clamp(current.conv + (Math.random() * 0.18 - 0.06), 2.1, 6.8),
-        cpl: clamp(current.cpl + (Math.random() * 2.4 - 1.25), 42, 98),
-        ret: clamp(current.ret + (Math.random() * 0.50 - 0.10), 7, 22),
+        conv: clamp(current.conv + (Math.random() * 0.1 - 0.05), 2.1, 6.8),
+        cpl: clamp(current.cpl + (Math.random() * 1.5 - 0.75), 42, 98),
+        ret: clamp(current.ret + (Math.random() * 0.3 - 0.15), 7, 22),
       }));
 
-      // 2. Update Footer/Global Stats
+      // 2. Update Footer/Global Stats - significantly slower growth/change
       setStats(current => {
-        const addedLeads = Math.floor(12 + Math.random() * 26);
-        const addedMql = Math.random() < 0.66 ? Math.floor(4 + Math.random() * 9) : Math.floor(1 + Math.random() * 4);
+        const addedLeads = Math.floor(1 + Math.random() * 4); // Very slow trickle
+        const addedMql = Math.random() < 0.3 ? 1 : 0; // Rare update
         
         return {
           leads: current.leads + addedLeads,
           mql: current.mql + addedMql,
-          roi: clamp(current.roi + (Math.random() * 2.2 - 0.9), 8, 44),
-          sessions: current.sessions + Math.floor(80 + Math.random() * 180),
-          ctr: clamp(current.ctr + (Math.random() * 0.18 - 0.06), 1.2, 4.8),
-          cac: clamp(current.cac + (Math.random() * 26 - 14), 520, 1200),
+          roi: clamp(current.roi + (Math.random() * 1.0 - 0.5), 8, 44),
+          sessions: current.sessions + Math.floor(5 + Math.random() * 20),
+          ctr: clamp(current.ctr + (Math.random() * 0.08 - 0.04), 1.2, 4.8),
+          cac: clamp(current.cac + (Math.random() * 10 - 5), 520, 1200),
         };
       });
 
-      // 3. Rebuild Sparkline
+      // 3. Rebuild Sparkline - slower phase shift
       setSparkSeed(prevSeed => {
-        const newSeed = prevSeed + 0.15; // Increased flow speed
+        const newSeed = prevSeed + 0.02; // Very slow organic shift (was 0.05)
         const W = 800; 
         const H = 340;
-        const pts = 32; // Increased points for smoother curves
+        const pts = 32; 
 
         let d = "";
         let f = `M 0 ${H} L 0 `;
@@ -114,12 +114,11 @@ export default function MarketingAnalytics() {
         for (let i = 0; i < pts; i++) {
           const x = (i / (pts - 1)) * W;
           
-          // Refined organic noise algorithm
-          const n = Math.sin((i * 0.35) + newSeed) * 35 +                    // Main swell
-                    Math.sin((i * 0.9) + newSeed * 1.5) * 18 +               // Mid-frequency rhythm
-                    Math.cos((i * 1.8) - newSeed * 0.8) * 12 +               // Counter-wave
-                    (Math.sin((i * 5) + newSeed * 3) * 5) +                  // High-frequency jitter
-                    (Math.random() * 28 - 14);                               // Organic noise floor
+          const n = Math.sin((i * 0.35) + newSeed) * 35 +
+                    Math.sin((i * 0.9) + newSeed * 1.5) * 18 +
+                    Math.cos((i * 1.8) - newSeed * 0.8) * 12 +
+                    (Math.sin((i * 5) + newSeed * 3) * 5) +
+                    (Math.random() * 28 - 14);
 
           const base = H * 0.55;
           const y = clamp(base - n, 50, H - 50);
@@ -137,8 +136,8 @@ export default function MarketingAnalytics() {
         return newSeed;
       });
 
-      // Schedule next tick - faster timing for more responsive feel
-      timeoutId = setTimeout(loop, 900 + (Math.random() * 300));
+      // Schedule next tick - VERY slow (6s to 9s per update)
+      timeoutId = setTimeout(loop, 6000 + (Math.random() * 3000));
     };
 
     // Start loop
@@ -153,16 +152,14 @@ export default function MarketingAnalytics() {
       setOrder(prevOrder => [prevOrder[1], prevOrder[2], prevOrder[0]]);
     };
     
-    const intervalId = setInterval(rotate, 3800);
+    // Slowed down from 8500ms to 12000ms (12 seconds per rotation)
+    const intervalId = setInterval(rotate, 12000);
     return () => clearInterval(intervalId);
   }, []);
 
   // --- Render Helpers ---
 
-  // Get position style for a card based on its index and the current order
   const getPositionConfig = (kpiIndex: number) => {
-    // order array: [frontIndex, midIndex, backIndex]
-    // We need to find where kpiIndex is within order.
     const posIndex = order.indexOf(kpiIndex); // 0 = Front, 1 = Mid, 2 = Back
 
     if (posIndex === 0) {
@@ -176,18 +173,17 @@ export default function MarketingAnalytics() {
     }
     if (posIndex === 1) {
       return { 
-        y: 24, // Increased spacing
+        y: 24,
         scale: 0.94, 
-        opacity: 0.5, // Reduced opacity
+        opacity: 0.5, 
         filter: 'blur(0.3px)', 
         zIndex: 20 
       };
     }
-    // posIndex === 2
     return { 
-      y: 48, // Increased spacing
+      y: 48,
       scale: 0.88, 
-      opacity: 0.2, // Reduced opacity
+      opacity: 0.2, 
       filter: 'blur(0.8px)', 
       zIndex: 10 
     };
@@ -209,7 +205,7 @@ export default function MarketingAnalytics() {
             y: "-50%"
           }}
           animate={{ rotate: 360 }}
-          transition={{ duration: 64, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 128, repeat: Infinity, ease: "linear" }}
         />
         <div className="pointer-events-none absolute inset-0" style={{ boxShadow: 'inset 0 0 150px rgba(0,0,0,0.55)' }}></div>
 
@@ -262,7 +258,7 @@ export default function MarketingAnalytics() {
                   y: ["-3%", "-6%"]
                 }}
                 transition={{
-                  duration: 8,
+                  duration: 25,
                   repeat: Infinity,
                   repeatType: "reverse",
                   ease: "easeInOut"
@@ -289,7 +285,7 @@ export default function MarketingAnalytics() {
                   strokeLinecap="round"
                   animate={{ d: sparkPath }}
                   transition={{
-                    duration: 1.2,
+                    duration: 3.5,
                     ease: "linear"
                   }}
                 />
@@ -299,7 +295,7 @@ export default function MarketingAnalytics() {
                   opacity="0.28"
                   animate={{ d: sparkFill }}
                   transition={{
-                    duration: 1.2,
+                    duration: 3.5,
                     ease: "linear"
                   }}
                 />
@@ -350,7 +346,7 @@ export default function MarketingAnalytics() {
                           boxShadow: '0 30px 60px rgba(0,0,0,0.6)'
                         }}
                         transition={{
-                          duration: 0.52,
+                          duration: 1.2,
                           ease: [0.4, 0, 0.2, 1]
                         }}
                       >
@@ -383,7 +379,7 @@ export default function MarketingAnalytics() {
                                   className="h-full rounded-full"
                                   style={{ background: colors.bar }}
                                   animate={{ width: `${Math.round(pct)}%` }}
-                                  transition={{ duration: 0.72, ease: [0.4, 0, 0.2, 1] }}
+                                  transition={{ duration: 2.0, ease: [0.4, 0, 0.2, 1] }}
                                 />
                               </div>
                               
