@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Types & Constants ---
 
@@ -44,6 +44,9 @@ export default function MarketingAnalytics() {
     ret: 12,
   });
   
+  // Ref for access inside closure without dependency loop
+  const kpiValuesRef = useRef(kpiValues);
+  
   // Previous values for momentum calculation
   const [prevKpiValues, setPrevKpiValues] = useState({
     conv: 3.8,
@@ -70,23 +73,33 @@ export default function MarketingAnalytics() {
   const [sparkFill, setSparkFill] = useState("");
   const [sparkSeed, setSparkSeed] = useState(0.0);
 
+  // Hover state for Tooltips
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   // --- Logic ---
+
+  // Sync ref
+  useEffect(() => {
+    kpiValuesRef.current = kpiValues;
+  }, [kpiValues]);
 
   // Data Simulation Loop
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const loop = () => {
-      // 1. Update KPI Values (Drift) - reduced variance for stability
-      setPrevKpiValues(prev => ({ ...kpiValues })); 
+      // 1. Snapshot current values for momentum
+      const currentKpis = kpiValuesRef.current;
+      setPrevKpiValues(currentKpis);
       
+      // 2. Update KPI Values (Drift) - reduced variance for stability
       setKpiValues(current => ({
         conv: clamp(current.conv + (Math.random() * 0.1 - 0.05), 2.1, 6.8),
         cpl: clamp(current.cpl + (Math.random() * 1.5 - 0.75), 42, 98),
         ret: clamp(current.ret + (Math.random() * 0.3 - 0.15), 7, 22),
       }));
 
-      // 2. Update Footer/Global Stats - significantly slower growth/change
+      // 3. Update Footer/Global Stats - significantly slower growth/change
       setStats(current => {
         const addedLeads = Math.floor(1 + Math.random() * 4); // Very slow trickle
         const addedMql = Math.random() < 0.3 ? 1 : 0; // Rare update
@@ -101,9 +114,9 @@ export default function MarketingAnalytics() {
         };
       });
 
-      // 3. Rebuild Sparkline - slower phase shift
+      // 4. Rebuild Sparkline - slower phase shift
       setSparkSeed(prevSeed => {
-        const newSeed = prevSeed + 0.02; // Very slow organic shift (was 0.05)
+        const newSeed = prevSeed + 0.02; // Very slow organic shift
         const W = 800; 
         const H = 340;
         const pts = 32; 
@@ -136,15 +149,16 @@ export default function MarketingAnalytics() {
         return newSeed;
       });
 
-      // Schedule next tick - VERY slow (6s to 9s per update)
-      timeoutId = setTimeout(loop, 6000 + (Math.random() * 3000));
+      // Schedule next tick - faster timing (approx 2s - 4s)
+      // This is faster than previous 6-9s but much slower than 100ms
+      timeoutId = setTimeout(loop, 2000 + (Math.random() * 2000));
     };
 
     // Start loop
     timeoutId = setTimeout(loop, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [kpiValues]);
+  }, []); // Empty dependency array ensures loop runs with correct timeout intervals
 
   // Carousel Rotation Loop
   useEffect(() => {
@@ -192,8 +206,8 @@ export default function MarketingAnalytics() {
   return (
     <div className="w-full h-full flex items-center justify-center bg-slate-900 p-4 font-[Inter] overflow-hidden">
       
-      {/* Safety Box / Tile */}
-      <div className="relative w-full h-full max-w-[463px] max-h-[632px] rounded-[28px] overflow-hidden border border-white/5 shadow-[0_30px_90px_rgba(0,0,0,0.55)] bg-gradient-to-br from-[#0b1224] via-[#091025] to-[#070c18] flex flex-col p-6">
+      {/* Safety Box / Tile - Scaled to max 600px */}
+      <div className="relative w-full h-full max-w-[600px] max-h-[600px] rounded-[28px] overflow-hidden border border-white/5 shadow-[0_30px_90px_rgba(0,0,0,0.55)] bg-gradient-to-br from-[#0b1224] via-[#091025] to-[#070c18] flex flex-col p-6">
         
         {/* Calm wash */}
         <motion.div 
@@ -303,7 +317,8 @@ export default function MarketingAnalytics() {
 
               {/* Carousel stack */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative w-[340px] h-[200px]">
+                {/* Fluid width container instead of fixed 340px */}
+                <div className="relative w-full max-w-[340px] h-[200px]">
                   {KPI_DEFS.map((kpi, i) => {
                     const posConfig = getPositionConfig(i);
                     const colors = toneColors(kpi.tone);
@@ -341,6 +356,8 @@ export default function MarketingAnalytics() {
                         }}
                         initial={false}
                         animate={posConfig}
+                        onHoverStart={() => setHoveredIndex(i)}
+                        onHoverEnd={() => setHoveredIndex(null)}
                         whileHover={{ 
                           scale: posConfig.scale * 1.03,
                           boxShadow: '0 30px 60px rgba(0,0,0,0.6)'
@@ -403,6 +420,25 @@ export default function MarketingAnalytics() {
                                 opacity: 0.50
                               }}>
                          </div>
+
+                         {/* Tooltip */}
+                         <AnimatePresence>
+                           {hoveredIndex === i && (
+                             <motion.div
+                               className="absolute top-2 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+                               initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                               animate={{ opacity: 1, y: 0, scale: 1 }}
+                               exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                               transition={{ duration: 0.15, ease: "easeOut" }}
+                             >
+                               <div className="px-3 py-1.5 bg-slate-900/90 border border-white/10 backdrop-blur-md rounded-lg shadow-xl whitespace-nowrap">
+                                 <div className="text-[10px] font-medium text-white tracking-wide">
+                                   <span className="opacity-70">{kpi.title}</span> • <span className={colors.fg}>Target {kpi.unit === "$" ? "$" : ""}{kpi.target}{kpi.unit === "%" ? "%" : ""}</span>
+                                 </div>
+                               </div>
+                             </motion.div>
+                           )}
+                         </AnimatePresence>
                       </motion.div>
                     );
                   })}
