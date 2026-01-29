@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import MarketingAnalytics from './Marketing-Analytics-Carousel';
+import MarketingAnalytics from './Marketing-Automation-Carousel';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
