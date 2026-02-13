@@ -116,7 +116,7 @@ export default function MarketingAnalytics() {
 
       // 4. Rebuild Sparkline
       setSparkSeed(prevSeed => {
-        const newSeed = prevSeed + 0.02;
+        const newSeed = prevSeed + 0.05; // Slightly faster evolution for fluidity
         const W = 800; 
         const H = 340;
         const pts = 32; 
@@ -127,11 +127,12 @@ export default function MarketingAnalytics() {
         for (let i = 0; i < pts; i++) {
           const x = (i / (pts - 1)) * W;
           
-          const n = Math.sin((i * 0.35) + newSeed) * 35 +
-                    Math.sin((i * 0.9) + newSeed * 1.5) * 18 +
-                    Math.cos((i * 1.8) - newSeed * 0.8) * 12 +
-                    (Math.sin((i * 5) + newSeed * 3) * 5) +
-                    (Math.random() * 28 - 14);
+          // Enhanced organic noise algorithm
+          const n = Math.sin((i * 0.42) + newSeed) * 45 +                 // Main swell (wider, taller)
+                    Math.sin((i * 1.1) + newSeed * 1.8) * 22 +            // Secondary rhythm (offset phase)
+                    Math.cos((i * 2.3) - newSeed * 0.9) * 15 +            // Complexity layer
+                    Math.sin((i * 6.5) + newSeed * 3.5) * 8 +             // Fine detail/jitter
+                    (Math.random() * 32 - 16);                            // Increased random noise floor
 
           const base = H * 0.55;
           const y = clamp(base - n, 50, H - 50);
